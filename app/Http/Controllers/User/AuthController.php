@@ -12,33 +12,33 @@ class AuthController extends Controller
 {
     public function viewRegister()
     {
-        return view('auth.register');
+        return view('pages.auth.register');
     }
 
     public function register(Request $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
+
+        $validated = $request->validate([
+            'name' => 'required|string|min:2|max:255',
             'email' => 'required|email|unique:users,email',
-            'password' => 'required|string|min:8|confirmed',
+            'password' => 'required|string|min:6|confirmed', // password_confirmation
         ]);
 
+        // dd($validated);
         User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
         ]);
 
-        return redirect()->route('login')->with('success', 'Registration successful. Please log in.');
+        return redirect()->route(route: 'login')->with('success', 'Qeydiyyat tamamlandı. Daxil olun zəhmət olmasa');
     }
 
-    // Show the login form
-    public function showLoginForm()
+    public function viewLogin()
     {
-        return view('auth.login');
+        return view('user.auth.login');
     }
 
-    // Handle the login process
     public function login(Request $request)
     {
         $request->validate([
@@ -47,16 +47,15 @@ class AuthController extends Controller
         ]);
 
         if (Auth::attempt($request->only('email', 'password'))) {
-            return redirect()->route('dashboard')->with('success', 'Login successful.');
+            return redirect()->route('viewHome')->with('success', 'Login successful.');
         }
 
-        return back()->withErrors(['email' => 'Invalid credentials.']);
+        return back()->withErrors(['invalid' => 'Email və ya şifrə yanlışdır'])->withInput();
     }
 
-    // Handle logout
     public function logout()
     {
         Auth::logout();
-        return redirect()->route('login')->with('success', 'Logged out successfully.');
+        return redirect()->route('login')->with('success', 'Çıxış edildi');
     }
 }
